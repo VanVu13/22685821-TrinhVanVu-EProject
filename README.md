@@ -24,8 +24,23 @@ EProject/
 ├─ docker-compose.yml
 ├─ README.md
 ```
+```
+                       ┌────────────┐
+                       │   Client   │
+                       └─────┬──────┘
+                             │
+                      ┌──────▼──────┐
+                      │ API Gateway │
+                      └──────┬──────┘
+       ┌────────────┬───────────────┬──────────────┐
+       │            │               │              │
+       ▼            ▼               ▼              ▼
+      AuthSvc   ProductSvc      OrderSvc     RabbitMQ Broker
+       │            │               │              │
+       ▼            ▼               ▼              ▼
+      authdb    productdb       orderdb       (message queue)
 
-
+```
 ---
 
 ## ⚙️ Yêu cầu hệ thống
@@ -68,15 +83,45 @@ docker-compose up --build
 - Mỗi service, MongoDB và RabbitMQ chạy trên container riêng.
 - API Gateway chạy trên http://localhost:3003, định tuyến đến các service.
 
-4️⃣ Test API
-Dùng Postman:
-| Service | Endpoint              | Mô tả                     |
-| ------- | --------------------- | ------------------------- |
-| Auth    | `POST /register`      | Tạo tài khoản             |
-| Auth    | `POST /login`         | Đăng nhập, nhận JWT       |
-| Product | `GET /api/products`   | Lấy danh sách sản phẩm    |
-| Product | `POST /api/products`  | Thêm sản phẩm             |
-| Product | `POST /api/products`  | Mua sản phẩm              |
+
+4️⃣Hướng dẫn test API
+1.Đăng ký tài khoản
+    POST http://localhost:3000/register
+    Body (JSON):
+    {
+      "username": "admin",
+      "password": "123456"
+    }
+2.Đăng nhập để lấy Token
+  POST http://localhost:3000/login
+  Body:
+  {
+    "username": "admin",
+    "password": "123456"
+  }
+  👉 Lưu token trả về để sử dụng ở các request sau (Authorization → Bearer Token)
+3.Thêm sản phẩm
+  POST http://localhost:3001/products
+  Headers:
+  Authorization: Bearer <token>
+  Body:
+  {
+    "name": "Laptop Dell XPS 13",
+    "price": 32000000,
+    "description": ok
+  }
+
+4.Xem danh sách sản phẩm
+  GET http://localhost:3001/products
+5. Mua sản phẩm
+  POST http://localhost:3003/orders
+  Headers:
+  Authorization: Bearer <token>
+  Body:
+  {
+    "ids": "ID của sản phẩm",
+  }
+  
 
 
 
