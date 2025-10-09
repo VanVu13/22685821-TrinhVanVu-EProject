@@ -72,11 +72,11 @@ docker-compose up --build
 Dùng Postman:
 | Service | Endpoint              | Mô tả                     |
 | ------- | --------------------- | ------------------------- |
-| Auth    | `POST /register` | Tạo tài khoản             |
-| Auth    | `POST /login`    | Đăng nhập, nhận JWT       |
+| Auth    | `POST /register`      | Tạo tài khoản             |
+| Auth    | `POST /login`         | Đăng nhập, nhận JWT       |
 | Product | `GET /api/products`   | Lấy danh sách sản phẩm    |
 | Product | `POST /api/products`  | Thêm sản phẩm             |
-| Order   | `GET /orders`         | Lấy danh sách đơn hàng    |
-| Order   | `POST /orders`        | Tạo đơn hàng, gửi message |
+| Product | `POST /api/products`  | Mua sản phẩm              |
+
 
 
