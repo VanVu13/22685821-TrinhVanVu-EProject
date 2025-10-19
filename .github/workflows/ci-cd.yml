@@ -59,4 +59,6 @@ jobs:
         run: |
           cd "D:\DAIHOC\NAM4\TAILIEU\LTHDV\THUCHANH\22685821-TrinhVanVu-EProject-main\22685821-TrinhVanVu-EProject-main"
           docker-compose down --remove-orphans
-          docker-compose up -d
+          docker-compose pull
+          docker-compose up -d --force-recreate
+
