@@ -6,51 +6,55 @@ on:
       - main
 
 jobs:
-  build-push-deploy:
-    runs-on: self-hosted   # Self-hosted runner = Docker Desktop
+  build-and-push:
+    runs-on: self-hosted   # GitHub runner để build & push
     steps:
-      # 1. Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Login Docker Hub
       - name: Login Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 3. Build all service images locally & tag commit
-      - name: Build all service images
+      # Build & push Docker images cho tất cả service
+      - name: Build & Push api-gateway
         run: |
-          docker build -t trinhvanvu/api-gateway:latest ./api-gateway
-          docker build -t trinhvanvu/api-gateway:${{ github.sha }} ./api-gateway
-
-          docker build -t trinhvanvu/auth:latest ./auth
-          docker build -t trinhvanvu/auth:${{ github.sha }} ./auth
-
-          docker build -t trinhvanvu/order:latest ./order
-          docker build -t trinhvanvu/order:${{ github.sha }} ./order
-
-          docker build -t trinhvanvu/product:latest ./product
-          docker build -t trinhvanvu/product:${{ github.sha }} ./product
-
-      # 4. Push images to Docker Hub (backup)
-      - name: Push images to Docker Hub
-        run: |
+          docker build -t trinhvanvu/api-gateway:latest -t trinhvanvu/api-gateway:${{ github.sha }} ./api-gateway
           docker push trinhvanvu/api-gateway:latest
           docker push trinhvanvu/api-gateway:${{ github.sha }}
 
+      - name: Build & Push auth
+        run: |
+          docker build -t trinhvanvu/auth:latest -t trinhvanvu/auth:${{ github.sha }} ./auth
           docker push trinhvanvu/auth:latest
           docker push trinhvanvu/auth:${{ github.sha }}
 
+      - name: Build & Push order
+        run: |
+          docker build -t trinhvanvu/order:latest -t trinhvanvu/order:${{ github.sha }} ./order
           docker push trinhvanvu/order:latest
           docker push trinhvanvu/order:${{ github.sha }}
 
+      - name: Build & Push product
+        run: |
+          docker build -t trinhvanvu/product:latest -t trinhvanvu/product:${{ github.sha }} ./product
           docker push trinhvanvu/product:latest
           docker push trinhvanvu/product:${{ github.sha }}
 
-      # 5. Deploy containers locally
+  deploy:
+    name: Deploy on Localhost (Windows Runner)
+    runs-on: self-hosted    # Self-hosted runner trên Windows
+    needs: build-and-push
+    steps:
+      - name: Pull latest Docker images
+        run: |
+          docker pull trinhvanvu/api-gateway:latest
+          docker pull trinhvanvu/auth:latest
+          docker pull trinhvanvu/order:latest
+          docker pull trinhvanvu/product:latest
+
       - name: Deploy with Docker Compose
         run: |
           cd "D:\DAIHOC\NAM4\TAILIEU\LTHDV\THUCHANH\22685821-TrinhVanVu-EProject-main\22685821-TrinhVanVu-EProject-main"
