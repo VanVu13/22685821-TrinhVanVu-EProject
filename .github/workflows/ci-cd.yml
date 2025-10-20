@@ -55,6 +55,10 @@ jobs:
       - name: Deploy with Docker Compose
         run: |
           cd "D:\DAIHOC\NAM4\TAILIEU\LTHDV\THUCHANH\22685821-TrinhVanVu-EProject1\22685821-TrinhVanVu-EProject-main"
-          docker-compose down --remove-orphans
+          docker rmi trinhvanvu/api-gateway:latest -f
+          docker rmi trinhvanvu/auth:latest -f
+          docker rmi trinhvanvu/order:latest -f
+          docker rmi trinhvanvu/product:latest -f
           docker-compose pull
           docker-compose up -d
+
