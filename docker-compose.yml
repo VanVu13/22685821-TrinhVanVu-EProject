@@ -1,6 +1,6 @@
 services:
   api-gateway:
-    build: ./api-gateway
+    image: trinhvanvu/api-gateway:latest
     container_name: api-gateway
     ports:
       - "3003:3003"
@@ -13,7 +13,7 @@ services:
       - order
 
   auth:
-    build: ./auth
+    image: trinhvanvu/auth:latest
     container_name: auth
     ports:
       - "3000:3000"
@@ -22,7 +22,7 @@ services:
       - mongo
 
   product:
-    build: ./product
+    image: trinhvanvu/product:latest
     container_name: product
     ports:
       - "3001:3001"
@@ -32,7 +32,7 @@ services:
       - rabbitmq
 
   order:
-    build: ./order
+    image: trinhvanvu/order:latest
     container_name: order
     ports:
       - "3002:3002"

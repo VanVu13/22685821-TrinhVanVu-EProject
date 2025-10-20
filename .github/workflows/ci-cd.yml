@@ -55,10 +55,16 @@ jobs:
       - name: Deploy with Docker Compose
         run: |
           cd "D:\DAIHOC\NAM4\TAILIEU\LTHDV\THUCHANH\22685821-TrinhVanVu-EProject1\22685821-TrinhVanVu-EProject-main"
-          docker rmi trinhvanvu/api-gateway:latest -f
-          docker rmi trinhvanvu/auth:latest -f
-          docker rmi trinhvanvu/order:latest -f
-          docker rmi trinhvanvu/product:latest -f
+
+          # ✅ 1. Dừng container cũ (không xóa image)
+          docker-compose down
+
+          # ✅ 2. Pull image mới từ Docker Hub
           docker-compose pull
+
+          # ✅ 3. Khởi động container mới bằng image mới
           docker-compose up -d
+
+          # ✅ 4. Kiểm tra xem container đang chạy bản mới chưa
+          docker ps
 
