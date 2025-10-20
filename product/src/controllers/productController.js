@@ -11,7 +11,6 @@ class ProductController {
     this.createOrder = this.createOrder.bind(this);
     this.getOrderStatus = this.getOrderStatus.bind(this);
     this.ordersMap = new Map();
-
   }
 
   async createProduct(req, res, next) {
@@ -86,14 +85,14 @@ class ProductController {
   }
   
 
-  // async getOrderStatus(req, res, next) {
-  //   const { orderId } = req.params;
-  //   const order = this.ordersMap.get(orderId);
-  //   if (!order) {
-  //     return res.status(404).json({ message: 'Order not found' });
-  //   }
-  //   return res.status(200).json(order);
-  // }
+  async getOrderStatus(req, res, next) {
+    const { orderId } = req.params;
+    const order = this.ordersMap.get(orderId);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+    return res.status(200).json(order);
+  }
   
 
   async getProducts(req, res, next) {
@@ -128,6 +127,10 @@ class ProductController {
       res.status(500).json({ message: "Server error" });
     }
   }
+  async getorderbyid(orderId) {
+    return this.ordersMap.get(orderId);
+  } 
+
 }
 
 module.exports = ProductController;
