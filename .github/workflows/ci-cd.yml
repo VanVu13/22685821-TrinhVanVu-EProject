@@ -1,70 +1,38 @@
-name: CI/CD Pipeline
-
-on:
-  push:
-    branches:
-      - main
-
-permissions:
-  contents: read
+name: CI
+on: [push, pull_request]
 
 jobs:
   test:
-    name: Run Unit Tests
     runs-on: ubuntu-latest
-
-    services:
-      mongo:
-        image: mongo:6.0
-        ports:
-          - 27017:27017
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
-      - name: Create .env files for testing
+      - name: Create .env files
         run: |
-          # auth
-          echo "PORT=3002" > auth/.env
-          echo "MONGODB_AUTH_URI=${{ secrets.MONGODB_AUTH_URI  }}" >> auth/.env
+          echo "MONGODB_AUTH_URI=${{ secrets.MONGODB_AUTH_URI }}" >> auth/.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> auth/.env
-
-          # product
-          echo "PORT=3003" > product/.env
-          echo "MONGODB_PRODUCT_URI=${{ secrets.MONGODB_PRODUCT_URI }}" >> product/.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> product/.env
+          echo "MONGODB_PRODUCT_URI=${{ secrets.MONGODB_PRODUCT_URI }}" >> product/.env
           echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> product/.env
           echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> product/.env
 
       - name: Install dependencies
         run: |
-          cd auth && npm ci && cd ..
-          cd product && npm ci && cd ..
-          npm ci
-
-      # Chờ MongoDB sẵn sàng
-      - name: Wait for MongoDB
-        run: npx wait-on tcp:mongo:27017
-
-      # Start auth server
-      - name: Start auth server
-        run: |
           cd auth
-          npm start &
-
-      # Chờ auth server listen xong
-      - name: Wait for auth server
-        run: npx wait-on http://auth:3000
-      
-
+          npm ci
+          cd ..
+          cd product
+          npm ci
+          cd ..
+          npm ci
       - name: Run tests for auth
-        run: |
+        run : |
           cd auth
           npm test
-
       - name: Run tests for product
         run: |
+          cd auth &&
+          npm start &
           cd product
           npm test
 
