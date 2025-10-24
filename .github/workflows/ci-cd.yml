@@ -51,9 +51,6 @@ jobs:
           sleep 5  # hoặc wait-on http://localhost:3000
           cd ..
 
-      - name: Wait for auth server
-        run: sleep 5
-
       - name: Run tests for product (calls auth service)
         run: |
           cd product
