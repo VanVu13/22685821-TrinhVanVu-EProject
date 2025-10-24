@@ -48,21 +48,18 @@ jobs:
       - name: Wait for Mongo
         run: npx wait-on tcp:27017 --timeout 120000
 
-  
       - name: Run Auth Tests
         run: |
           cd auth
           npx mocha --timeout 20000 src/test/**/*.test.js --exit --reporter spec
-          cd .
 
       - name: Run Product Tests
         run: |
           cd auth
-          npm start &
+          npm start &                            # Start Auth service
           npx wait-on http://localhost:3000/login --timeout 30000
           cd ../product
           npx mocha --timeout 20000 src/test/**/*.test.js --exit --reporter spec
-          cd ..
 
 
   build-and-push:
