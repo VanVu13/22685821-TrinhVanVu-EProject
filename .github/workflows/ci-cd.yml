@@ -47,8 +47,8 @@ jobs:
           npm start &
           cd ..
 
-      - name: Wait for auth service
-        run: npx wait-on http://localhost:3000
+      - name: Wait 10s
+        run: sleep 10
 
       - name: Run tests for product
         run: |
