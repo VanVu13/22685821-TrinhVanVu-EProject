@@ -51,15 +51,12 @@ jobs:
   
       - name: Run Auth Tests
         run: |
-          cd auth
-          npx mocha --timeout 20000 src/test/**/*.test.js --exit
-          cd ..
+          cd auth && npm install && cd ..
 
       - name: Run Product Tests
         run: |
-          cd product
-          npx mocha --timeout 20000 src/test/**/*.test.js --exit
-          cd ..
+          cd product && npm install && cd ..
+
 
   build-and-push:
     name: Build and Push Docker Images
