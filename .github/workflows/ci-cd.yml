@@ -43,16 +43,10 @@ jobs:
           npx wait-on http://localhost:3000 --timeout 60000
           cd ../product
           npm test
+
       - name: Run tests for auth
         run: |
           cd auth
-          npm test
-
-      - name: Run tests for product
-        run: |
-          cd auth &&
-          npm start &
-          cd product
           npm test
 
 
