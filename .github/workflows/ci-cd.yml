@@ -31,13 +31,13 @@ jobs:
 
       - name: Create .env files
         run: |
-  
+
           # Chỉ cho auth
-          echo "MONGODB_AUTH_URI=mongodb://localhost:27017/authdb" >> auth/.env
+          echo "MONGODB_AUTH_URI=${{ secrets.MONGODB_AUTH_URI  }}" >> auth/.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> auth/.env
 
           # Chỉ cho product
-          echo "MONGODB_PRODUCT_URI=mongodb://localhost:27017/productdb" >> product/.env
+          echo "MONGODB_PRODUCT_URI=${{ secrets.MONGODB_PRODUCT_URI }}" >> product/.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> product/.env
           echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> product/.env
           echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> product/.env
@@ -49,13 +49,8 @@ jobs:
           cd .. && npm ci
 
       - name: Wait for MongoDB to be ready
-        run: |
-          echo "Waiting for MongoDB to be ready..."
-          for i in {1..10}; do
-            nc -z localhost 27017 && echo "MongoDB is ready!" && break
-            echo "Waiting 3s..."
-            sleep 3
-          done
+        run: npx wait-on tcp:27017 --timeout 120000
+
 
       - name: Run auth tests
         run: |
@@ -65,9 +60,7 @@ jobs:
         run: |
           cd auth
           npm start &
-          sleep 5
-          npx wait-on http://auth:3000/auth --timeout 60000
-
+          npx wait-on http://localhost:3000/auth --timeout 30000
       - name: Run Product Tests
         run: |
           cd product
