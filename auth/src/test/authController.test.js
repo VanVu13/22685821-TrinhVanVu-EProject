@@ -34,7 +34,7 @@ describe("User Authentication", () => {
       expect(res.body).to.have.property("username", "testuser");
     });
 
-    it("should return an error if the username is already taken", async () => {
+    it("should return an error if the username is already ", async () => {
       const res = await chai
         .request(app.app)
         .post("/register")
