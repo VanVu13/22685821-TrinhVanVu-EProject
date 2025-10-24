@@ -67,14 +67,14 @@ jobs:
           npm test
           cd ..
 
-      - name: Start Auth server for integration tests
-        run: |
-          cd auth
-          npm start > auth.log 2>&1 &
-          cd ..
-          echo "Waiting for Auth server..."
-          npx wait-on http://localhost:3000/auth --timeout 30000
-          tail -n 20 auth/auth.log
+      # - name: Start Auth server for integration tests
+      #   run: |
+      #     cd auth
+      #     npm start > auth.log 2>&1 &
+      #     cd ..
+      #     echo "Waiting for Auth server..."
+      #     npx wait-on http://localhost:3000/auth --timeout 30000
+      #     tail -n 20 auth/auth.log
 
       - name: Run Product tests
         run: |
