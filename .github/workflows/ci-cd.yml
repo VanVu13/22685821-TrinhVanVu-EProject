@@ -45,6 +45,9 @@ jobs:
           cd auth && npm ci && cd ..
           cd product && npm ci && cd ..
 
+      - name: Wait for Mongo
+        run: npx wait-on tcp:27017 --timeout 120000
+
       - name: Start auth server and wait
         run: |
           cd auth
