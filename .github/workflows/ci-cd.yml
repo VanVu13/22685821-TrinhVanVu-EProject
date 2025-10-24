@@ -1,4 +1,5 @@
 name: CI/CD Pipeline
+
 on: [push, pull_request]
 
 jobs:
@@ -6,8 +7,8 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      mongo:
-        image: mongo:6.0
+      mongodb:
+        image: mongo:6
         ports:
           - 27017:27017
         options: >-
@@ -18,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3.2.0
 
       - name: Cache node modules
         uses: actions/cache@v3
@@ -29,19 +30,14 @@ jobs:
             node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-
-      - name: Create .env files
+      - name: Setup test environment
         run: |
-          # Auth
-          echo "MONGODB_AUTH_URI=${{ secrets.MONGODB_AUTH_URI }}" > auth/.env
+          # Auth service
+          echo "MONGODB_AUTH_URI=${{ secrets.MONGODB_AUTH_URI }}" >> auth/.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> auth/.env
 
-          # Product
-          echo "MONGODB_PRODUCT_URI=${{ secrets.MONGODB_PRODUCT_URI }}" > product/.env
+          # Product service
+          echo "MONGODB_PRODUCT_URI=${{ secrets.MONGODB_PRODUCT_URI }}" >> product/.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> product/.env
           echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> product/.env
           echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> product/.env
@@ -54,37 +50,29 @@ jobs:
 
       - name: Wait for MongoDB
         run: |
-          echo "Waiting for MongoDB..."
-          for i in {1..20}; do
-            nc -z localhost 27017 && echo "MongoDB ready!" && break
+          echo "Waiting for MongoDB to be ready..."
+          for i in {1..10}; do
+            nc -z localhost 27017 && echo "MongoDB is ready!" && break
             echo "Waiting 3s..."
             sleep 3
           done
 
-      - name: Run Auth unit tests
+      - name: Run auth tests
         run: |
           cd auth
           npm test
-          cd ..
 
-      - name: Start Auth server for integration tests
+      - name: Start auth service for integration tests
         run: |
           cd auth
-          npm start > auth.log 2>&1 &
-          cd ..
-          echo "Waiting for Auth server..."
-          for i in {1..20}; do
-            npx wait-on http://localhost:3000/auth && echo "Auth server ready!" && break
-            echo "Auth server not ready, waiting 3s..."
-            sleep 3
-          done
-          tail -n 20 auth/auth.log
+          npm start &
+          echo "Waiting for auth service..."
+          npx wait-on http://localhost:3000/auth --timeout 30000
 
-      - name: Run Product tests
+      - name: Run product tests
         run: |
           cd product
           npm test
-          cd ..
 
       - name: Cleanup
         if: always()
