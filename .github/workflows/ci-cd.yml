@@ -12,32 +12,41 @@ jobs:
   test:
     name: Run Unit Tests
     runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:6.0
+        ports:
+            - 27017:27017
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Create .env file
         run: |
-          echo "MONGODB_AUTH_URI=${{ secrets.MONGODB_AUTH_URI }}" >> auth/.env
+          echo "MONGODB_AUTH_URI=mongodb://localhost:27017/authdb" >> auth/.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> auth/.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> product/.env
-          echo "MONGODB_PRODUCT_URI=${{ secrets.MONGODB_PRODUCT_URI }}" >> product/.env
+          echo "MONGODB_PRODUCT_URI=mongodb://localhost:27017/productdb" >> product/.env
           echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> product/.env
           echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> product/.env
 
       - name: Install dependencies
         run: |
+          cd auth && npm ci && cd ..
+          cd product && npm ci && cd ..
+          npm ci
+
+      - name: Start auth server in background
+        run: |
           cd auth
-          npm ci
-          cd ..
-          cd product
-          npm ci
-          cd ..
-          npm ci
+          npm start &
+          npx wait-on http://localhost:3000 --timeout 30000
+
       - name: Run tests for auth
-        run : |
+        run: |
           cd auth
           npm test
+
       - name: Run tests for product
         run: |
           cd auth &&
