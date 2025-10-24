@@ -43,9 +43,20 @@ jobs:
           cd product && npm ci && cd ..
           npm ci
 
+      # Chờ MongoDB sẵn sàng
       - name: Wait for MongoDB
+        run: npx wait-on tcp:mongo:27017
+
+      # Start auth server
+      - name: Start auth server
         run: |
-          for i in {1..20}; do nc -z mongo 27017 && break || sleep 1; done
+          cd auth
+          npm start &
+
+      # Chờ auth server listen xong
+      - name: Wait for auth server
+        run: npx wait-on http://auth:3000
+      
 
       - name: Run tests for auth
         run: |
