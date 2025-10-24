@@ -29,21 +29,29 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd auth
+          cd auth && npm ci && cd ..
+          cd product && npm ci && cd ..
           npm ci
-          cd ..
-          cd product
-          npm ci
-          cd ..
-          npm ci
+
+      - name: Wait for MongoDB
+        run: npx wait-on tcp:27017
+
       - name: Run tests for auth
-        run : |
+        run: |
           cd auth
           npm test
+
+      - name: Start auth service
+        run: |
+          cd auth
+          npm start &
+          cd ..
+
+      - name: Wait for auth service
+        run: npx wait-on http://localhost:3000
+
       - name: Run tests for product
         run: |
-          cd auth &&
-          npm start &
           cd product
           npm test
 
