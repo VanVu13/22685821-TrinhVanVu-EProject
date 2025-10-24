@@ -12,41 +12,52 @@ jobs:
   test:
     name: Run Unit Tests
     runs-on: ubuntu-latest
-    
+
+    services:
+      mongo:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand({ ping: 1 })'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Create .env file
         run: |
-          echo "MONGODB_AUTH_URI=${{ secrets.MONGODB_AUTH_URI }}" >> auth/.env
+          echo "MONGODB_AUTH_URI=mongodb://localhost:27017/auth_test" >> auth/.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> auth/.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> product/.env
-          echo "MONGODB_PRODUCT_URI=${{ secrets.MONGODB_PRODUCT_URI }}" >> product/.env
+          echo "MONGODB_PRODUCT_URI=mongodb://localhost:27017/product_test" >> product/.env
           echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> product/.env
           echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> product/.env
 
       - name: Install dependencies
         run: |
-          cd auth
+          cd auth && npm ci && cd ..
+          cd product && npm ci && cd ..
           npm ci
-          cd ..
-          cd product
-          npm ci
-          cd ..
-          npm ci
+
       - name: Run tests for auth
-        run : |
-          cd auth
-          npm test
-      - name: Run tests for product
         run: |
-          cd auth &&
-          npm start &
-          sleep 10
-          cd product
+          cd auth
           npm test
 
+      - name: Start auth server and wait
+        run: |
+          cd auth
+          npm start &
+          npx wait-on tcp:3000
+
+      - name: Run tests for product
+        run: |
+          cd product
+          npm test
 
   build-and-push:
     name: Build and Push Docker Images
