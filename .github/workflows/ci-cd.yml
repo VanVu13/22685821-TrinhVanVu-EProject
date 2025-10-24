@@ -28,17 +28,24 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd auth && npm ci
-          cd ../product && npm ci
-
-      - name: Run tests
-        run: |
+          cd auth
+          npm ci
+          cd ..
+          cd product
+          npm ci
+          cd ..
+          npm ci
+      - name: Run tests for auth
+        run : |
           cd auth
           npm test
-          nohup npm start &       # chạy nền để product test có thể gọi auth
-          sleep 5                 # đợi auth sẵn sàng
-          cd ../product
+      - name: Run tests for product
+        run: |
+          cd auth &&
+          npm start &
+          cd product
           npm test
+
 
   build-and-push:
     name: Build and Push Docker Images
