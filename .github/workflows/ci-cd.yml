@@ -52,28 +52,31 @@ jobs:
           cd ../product && npm ci
           cd .. && npm ci
 
-      - name: Start Auth service
+      - name: Wait for MongoDB
+        run: |
+          echo "Waiting for MongoDB to be ready..."
+          for i in {1..10}; do
+            nc -z localhost 27017 && echo "MongoDB is ready!" && break
+            echo "Waiting 3s..."
+            sleep 3
+          done
+
+      - name: Run auth tests
+        run: |
+          cd auth
+          npm test
+
+      - name: Start auth service for integration tests
         run: |
           cd auth
           npm start &
-          cd ..
-
-      - name: Wait for services
-        run: |
-          npx wait-on tcp:27017 --timeout 120000
+          echo "Waiting for auth service..."
           npx wait-on http://localhost:3000/auth --timeout 30000
 
-      - name: Run Auth tests
-        run: |
-          cd auth
-          npm test
-          cd ..
-
-      - name: Run Product tests
+      - name: Run product tests
         run: |
           cd product
           npm test
-          cd ..
 
       - name: Cleanup
         if: always()
