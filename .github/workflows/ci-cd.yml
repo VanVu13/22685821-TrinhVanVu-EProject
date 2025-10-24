@@ -36,12 +36,13 @@ jobs:
           cd product && npm ci && cd ..
           npm ci
 
-      - name: Start auth server in background
+      - name: Start auth server & run product tests
         run: |
           cd auth
           npm start &
-          npx wait-on http://localhost:3000 --timeout 30000
-
+          npx wait-on http://localhost:3000 --timeout 60000
+          cd ../product
+          npm test
       - name: Run tests for auth
         run: |
           cd auth
