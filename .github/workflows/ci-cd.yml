@@ -52,7 +52,7 @@ jobs:
       - name: Run Auth Tests
         run: |
           cd auth
-          npm ci --include=dev
+          npm ci --include=dev             # cài cả devDependencies
           npx mocha --timeout 20000 src/test/**/*.test.js --exit
           cd ..
 
@@ -61,7 +61,7 @@ jobs:
           cd product
           npm ci --include=dev
           npx mocha --timeout 20000 src/test/**/*.test.js --exit
-          cd ..
+          cd .
 
   build-and-push:
     name: Build and Push Docker Images
