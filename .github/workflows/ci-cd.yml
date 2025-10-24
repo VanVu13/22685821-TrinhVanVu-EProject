@@ -54,9 +54,9 @@ jobs:
 
       - name: Wait for MongoDB
         run: |
-          echo "Waiting for MongoDB to be ready..."
+          echo "Waiting for MongoDB..."
           for i in {1..20}; do
-            nc -z localhost 27017 && echo "MongoDB is ready!" && break
+            nc -z localhost 27017 && echo "MongoDB ready!" && break
             echo "Waiting 3s..."
             sleep 3
           done
@@ -67,14 +67,15 @@ jobs:
           npm test
           cd ..
 
-      # - name: Start Auth server for integration tests
-      #   run: |
-      #     cd auth
-      #     npm start > auth.log 2>&1 &
-      #     cd ..
-      #     echo "Waiting for Auth server..."
-      #     npx wait-on http://localhost:3000/auth --timeout 30000
-      #     tail -n 20 auth/auth.log
+      - name: Start Auth server for integration tests
+        run: |
+          cd auth
+          npm start > auth.log 2>&1 &
+          cd ..
+          echo "Waiting for Auth server..."
+          sleep 5  # đợi server khởi tạo
+          npx wait-on http://localhost:3000/auth --timeout 60000
+          tail -n 20 auth/auth.log
 
       - name: Run Product tests
         run: |
