@@ -16,17 +16,27 @@ jobs:
       mongo:
         image: mongo:6.0
         ports:
-            - 27017:27017
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+          - 27017:27017
+        options: >-
+          --health-cmd "mongo --eval 'db.runCommand({ ping: 1 })'" 
+          --health-interval 10s 
+          --health-timeout 5s 
+          --health-retries 5
 
-      - name: Create .env file
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Create .env files
         run: |
-          echo "MONGODB_AUTH_URI=mongodb://localhost:27017/authdb" >> auth/.env
+          echo "MONGODB_AUTH_URI=mongodb://mongo:27017/authdb" >> auth/.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> auth/.env
+          echo "MONGODB_PRODUCT_URI=mongodb://mongo:27017/productdb" >> product/.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> product/.env
-          echo "MONGODB_PRODUCT_URI=mongodb://localhost:27017/productdb" >> product/.env
           echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> product/.env
           echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> product/.env
 
@@ -34,22 +44,23 @@ jobs:
         run: |
           cd auth && npm ci && cd ..
           cd product && npm ci && cd ..
-          npm ci
 
-      - name: Start auth server & run product tests
+      - name: Start auth server and wait
         run: |
           cd auth
           npm start &
-          npx wait-on http://localhost:3000 --timeout 60000
-          cd ../product
+          npx wait-on http://localhost:3000 --timeout 120000
+          cd ..
+
+      - name: Run Product Tests
+        run: |
+          cd product
           npm test
 
-      - name: Run tests for auth
+      - name: Run Auth Tests
         run: |
           cd auth
           npm test
-
-
   build-and-push:
     name: Build and Push Docker Images
     runs-on: ubuntu-latest
