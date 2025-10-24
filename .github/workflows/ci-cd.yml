@@ -51,17 +51,23 @@ jobs:
       - name: Run Auth Tests
         run: |
           cd auth
+          npm ci --include=dev             # cài cả devDependencies (mocha, chai, ...)
+          echo "Node modules in auth:"
+          ls node_modules                  # kiểm tra mocha + chai
           npx mocha --timeout 20000 src/test/**/*.test.js --exit --reporter spec
+          cd ..
 
       - name: Run Product Tests
         run: |
           cd auth
-          npm start &                            # Start Auth service
+          npm start &                      # start auth service background
           npx wait-on http://localhost:3000/login --timeout 30000
           cd ../product
+          npm ci --include=dev             # cài devDependencies cho product
+          echo "Node modules in product:"
+          ls node_modules                  # kiểm tra mocha + chai
           npx mocha --timeout 20000 src/test/**/*.test.js --exit --reporter spec
-
-
+          cd ..
   build-and-push:
     name: Build and Push Docker Images
     runs-on: ubuntu-latest
