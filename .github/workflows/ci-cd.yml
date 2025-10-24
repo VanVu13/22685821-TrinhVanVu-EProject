@@ -44,20 +44,19 @@ jobs:
           npm test
 
       # 🔹 Start auth server để product test có thể gọi
-      - name: Start auth service
+      - name: Start auth server
         run: |
           cd auth
           npm start &
-          sleep 5  # hoặc wait-on http://localhost:3000
           cd ..
+
       - name: Wait for auth server
-        run: npx wait-on http://localhost:3000/auth/login
+        run: sleep 5
+
       - name: Run tests for product (calls auth service)
         run: |
-           cd auth &&
-            npm start &
-            cd product
-            npm test
+          cd product
+          npm test
 
 
   build-and-push:
