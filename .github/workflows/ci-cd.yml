@@ -28,6 +28,7 @@ jobs:
             product/node_modules
             node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -35,13 +36,12 @@ jobs:
 
       - name: Create .env files
         run: |
-
-          # Chỉ cho auth
-          echo "MONGODB_AUTH_URI=${{ secrets.MONGODB_AUTH_URI  }}" >> auth/.env
+          # Auth
+          echo "MONGODB_AUTH_URI=${{ secrets.MONGODB_AUTH_URI }}" > auth/.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> auth/.env
 
-          # Chỉ cho product
-          echo "MONGODB_PRODUCT_URI=${{ secrets.MONGODB_PRODUCT_URI }}" >> product/.env
+          # Product
+          echo "MONGODB_PRODUCT_URI=${{ secrets.MONGODB_PRODUCT_URI }}" > product/.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> product/.env
           echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> product/.env
           echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> product/.env
@@ -73,8 +73,11 @@ jobs:
           npm start > auth.log 2>&1 &
           cd ..
           echo "Waiting for Auth server..."
-          sleep 5  # đợi server khởi tạo
-          npx wait-on http://localhost:3000/auth --timeout 60000
+          for i in {1..20}; do
+            npx wait-on http://localhost:3000/auth && echo "Auth server ready!" && break
+            echo "Auth server not ready, waiting 3s..."
+            sleep 3
+          done
           tail -n 20 auth/auth.log
 
       - name: Run Product tests
