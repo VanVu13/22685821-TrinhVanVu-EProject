@@ -18,11 +18,6 @@ jobs:
         image: mongo:6.0
         ports:
           - 27017:27017
-        options: >-
-          --health-cmd "mongosh --eval 'db.adminCommand({ ping: 1 })'"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
       - name: Checkout code
@@ -43,24 +38,16 @@ jobs:
           cd product && npm ci && cd ..
           npm ci
 
-      # Chờ Mongo sẵn sàng
-      - name: Wait for MongoDB
-        run: npx wait-on tcp:mongo:27017 --timeout 60000
-
-      # Start auth server & chờ listen xong
-      - name: Start auth server
+      - name: Start auth server in background
         run: |
           cd auth
           npm start &
-          npx wait-on tcp:3000 --timeout 60000
 
-      # Test auth
       - name: Run tests for auth
         run: |
           cd auth
           npm test
 
-      # Test product
       - name: Run tests for product
         run: |
           cd product
