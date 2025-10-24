@@ -53,7 +53,12 @@ jobs:
           cd auth
           npm start &
           npx wait-on tcp:3000
-
+      # ✅ Thêm bước này ngay sau khi test auth
+      - name: Start auth server and wait
+        run: |
+          cd auth
+          npm start &
+          npx wait-on tcp:3000
       - name: Run tests for product
         run: |
           cd product
