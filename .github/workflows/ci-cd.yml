@@ -37,7 +37,7 @@ jobs:
           echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> product/.env
           echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> product/.env
 
-       - name: Install dependencies
+      - name: Install dependencies
         run: |
           cd auth && npm ci && cd ..
           cd product && npm ci && cd ..
