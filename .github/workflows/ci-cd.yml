@@ -51,21 +51,21 @@ jobs:
       - name: Run Auth Tests
         run: |
           cd auth
-          npm ci --include=dev             # cài cả devDependencies (mocha, chai, ...)
+          npm ci --include=dev
           echo "Node modules in auth:"
-          ls node_modules                  # kiểm tra mocha + chai
+          ls node_modules
           npx mocha --timeout 20000 src/test/**/*.test.js --exit --reporter spec
           cd ..
 
       - name: Run Product Tests
         run: |
           cd auth
-          npm start &                      # start auth service background
+          npm start &
           npx wait-on http://localhost:3000/login --timeout 30000
           cd ../product
-          npm ci --include=dev             # cài devDependencies cho product
+          npm ci --include=dev
           echo "Node modules in product:"
-          ls node_modules                  # kiểm tra mocha + chai
+          ls node_modules
           npx mocha --timeout 20000 src/test/**/*.test.js --exit --reporter spec
           cd ..
   build-and-push:
