@@ -121,26 +121,26 @@ jobs:
           docker push trinhvanvu/product:${{ github.sha }}
 
   deploy:
-  name: Deploy on Localhost (Docker Desktop)
-  needs: build-and-push
-  runs-on: self-hosted
+    name: Deploy on Localhost (Docker Desktop)
+    needs: build-and-push
+    runs-on: self-hosted
 
-  steps:
-    - name: Set commit SHA
-      run: |
-        echo "COMMIT_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
+    steps:
+      - name: Set commit SHA
+        run: |
+          echo "COMMIT_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
 
-    - name: Pull only updated images
-      run: |
-        cd "D:/DAIHOC/NAM4/TAILIEU/LTHDV/THUCHANH/22685821-TrinhVanVu-EProject1/22685821-TrinhVanVu-EProject-main"
-        docker pull trinhvanvu/auth:${GITHUB_SHA} || true
-        docker pull trinhvanvu/product:${GITHUB_SHA} || true
-        docker pull trinhvanvu/order:${GITHUB_SHA} || true
-        docker pull trinhvanvu/api-gateway:${GITHUB_SHA} || true
+      - name: Pull only updated images
+        run: |
+          cd "D:/DAIHOC/NAM4/TAILIEU/LTHDV/THUCHANH/22685821-TrinhVanVu-EProject1/22685821-TrinhVanVu-EProject-main"
+          docker pull trinhvanvu/auth:${GITHUB_SHA} || true
+          docker pull trinhvanvu/product:${GITHUB_SHA} || true
+          docker pull trinhvanvu/order:${GITHUB_SHA} || true
+          docker pull trinhvanvu/api-gateway:${GITHUB_SHA} || true
 
-    - name: Deploy updated services
-      run: |
-        cd "D:/DAIHOC/NAM4/TAILIEU/LTHDV/THUCHANH/22685821-TrinhVanVu-EProject1/22685821-TrinhVanVu-EProject-main"
-        docker-compose down --remove-orphans
-        docker-compose up -d
-        docker ps
+      - name: Deploy updated services
+        run: |
+          cd "D:/DAIHOC/NAM4/TAILIEU/LTHDV/THUCHANH/22685821-TrinhVanVu-EProject1/22685821-TrinhVanVu-EProject-main"
+          docker-compose down --remove-orphans
+          docker-compose up -d
+          docker ps
