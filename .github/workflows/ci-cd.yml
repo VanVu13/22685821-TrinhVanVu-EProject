@@ -16,46 +16,51 @@ jobs:
         image: mongo:latest
         ports:
           - 27017:27017
-        options: "--no-healthcheck"
 
-    steps:
+    steps:  
       - uses: actions/checkout@v4
 
-      - name: Create .env
+      - name: Create .env files
         run: |
-          echo "MONGODB_AUTH_URI=mongodb://localhost:27017/authdb" >> auth/.env
-          echo "JWT_SECRET=mysecretkey" >> auth/.env
-          echo "MONGODB_PRODUCT_URI=mongodb://localhost:27017/productdb" >> product/.env
-          echo "JWT_SECRET=mysecretkey" >> product/.env
-          echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> product/.env
-          echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> product/.env
+          for service in auth product; do
+            echo "MONGODB_URI=${{ secrets['MONGODB_'${service^^}'_URI'] }}" > $service/.env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> $service/.env
+            echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> $service/.env
+            echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> $service/.env
+          done
 
       - name: Install dependencies
         run: |
           cd auth && npm ci
           cd ../product && npm ci
 
-      - name: Wait for Mongo
+      - name: Wait for MongoDB
         run: |
           until nc -z localhost 27017; do
             echo "Waiting for MongoDB..."
             sleep 2
           done
 
-      - name: Run tests auth
+      - name: Run auth tests
         run: |
           cd auth && npm test
 
-      - name: Start auth and wait
+      - name: Start Auth service and wait
         run: |
           cd auth && npm start &
-          until nc -z localhost 3000; do sleep 2; done
+          timeout=0
+          until nc -z localhost 3000; do
+            sleep 2
+            timeout=$((timeout+2))
+            if [ $timeout -ge 20 ]; then
+              echo "Auth service not ready after 20s"
+              exit 1
+            fi
+          done
 
-      - name: Run tests product
+      - name: Run product tests
         run: |
           cd product && npm test
-
-
 
   build-and-push:
     name: Build and Push Docker Images
@@ -63,8 +68,7 @@ jobs:
     needs: test
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -72,32 +76,13 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Create .env file
+      - name: Build & Push Docker images
         run: |
-          echo "MONGODB_AUTH_URI=${{ secrets.MONGODB_AUTH_URI }}" >> auth/.env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> auth/.env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> product/.env
-          echo "MONGODB_PRODUCT_URI=${{ secrets.MONGODB_PRODUCT_URI }}" >> product/.env
-          echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> product/.env
-          echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> product/.env
-
-      - name: Build & Push all service images
-        run: |
-          docker build -t trinhvanvu/api-gateway:latest -t trinhvanvu/api-gateway:${{ github.sha }} ./api-gateway
-          docker push trinhvanvu/api-gateway:latest
-          docker push trinhvanvu/api-gateway:${{ github.sha }}
-
-          docker build -t trinhvanvu/auth:latest -t trinhvanvu/auth:${{ github.sha }} ./auth
-          docker push trinhvanvu/auth:latest
-          docker push trinhvanvu/auth:${{ github.sha }}
-
-          docker build -t trinhvanvu/order:latest -t trinhvanvu/order:${{ github.sha }} ./order
-          docker push trinhvanvu/order:latest
-          docker push trinhvanvu/order:${{ github.sha }}
-
-          docker build -t trinhvanvu/product:latest -t trinhvanvu/product:${{ github.sha }} ./product
-          docker push trinhvanvu/product:latest
-          docker push trinhvanvu/product:${{ github.sha }}
+          for service in api-gateway auth order product; do
+            docker build --pull -t trinhvanvu/$service:latest -t trinhvanvu/$service:${{ github.sha }} ./$service
+            docker push trinhvanvu/$service:latest
+            docker push trinhvanvu/$service:${{ github.sha }}
+          done
 
   deploy:
     name: Deploy on Localhost (Docker Desktop)
