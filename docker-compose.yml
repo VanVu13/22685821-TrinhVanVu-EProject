@@ -1,6 +1,8 @@
 services:
   api-gateway:
-    image: trinhvanvu/api-gateway:latest
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
     container_name: api-gateway
     ports:
       - "3003:3003"
@@ -13,7 +15,9 @@ services:
       - order
 
   auth:
-    image: trinhvanvu/auth:latest
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
     container_name: auth
     ports:
       - "3000:3000"
@@ -22,7 +26,9 @@ services:
       - mongo
 
   product:
-    image: trinhvanvu/product:latest
+    build:
+      context: ./product
+      dockerfile: Dockerfile
     container_name: product
     ports:
       - "3001:3001"
@@ -32,7 +38,9 @@ services:
       - rabbitmq
 
   order:
-    image: trinhvanvu/order:latest
+    build:
+      context: ./order
+      dockerfile: Dockerfile
     container_name: order
     ports:
       - "3002:3002"
