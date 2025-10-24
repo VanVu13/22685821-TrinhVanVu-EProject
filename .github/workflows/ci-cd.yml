@@ -52,13 +52,13 @@ jobs:
       - name: Run Auth Tests
         run: |
           cd auth
-          npm test
+          npx mocha --timeout 20000 src/test/**/*.test.js --exit
           cd ..
 
       - name: Run Product Tests
         run: |
           cd product
-          npm test
+          npx mocha --timeout 20000 src/test/**/*.test.js --exit
           cd ..
 
   build-and-push:
