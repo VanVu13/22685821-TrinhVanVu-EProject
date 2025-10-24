@@ -48,27 +48,33 @@ jobs:
           cd ../product && npm ci
           cd .. && npm ci
 
-      - name: Wait for MongoDB to be ready
-        run: npx wait-on tcp:27017 --timeout 120000
-
-
-      - name: Run auth tests
-        run: |
-          cd auth
-          npm test
-      - name: Start auth service for integration tests
+      - name: Start Auth service
         run: |
           cd auth
           npm start &
+          cd ..
+
+      - name: Wait for services
+        run: |
+          npx wait-on tcp:27017 --timeout 120000
           npx wait-on http://localhost:3000/auth --timeout 30000
-      - name: Run Product Tests
+
+      - name: Run Auth tests
+        run: |
+          cd auth
+          npm test
+          cd ..
+
+      - name: Run Product tests
         run: |
           cd product
           npm test
           cd ..
+
       - name: Cleanup
         if: always()
         run: pkill -f "node" || true
+
   build-and-push:
     name: Build and Push Docker Images
     runs-on: ubuntu-latest
