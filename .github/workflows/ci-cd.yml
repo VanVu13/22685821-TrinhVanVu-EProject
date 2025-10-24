@@ -42,8 +42,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd auth && npm ci && cd ..
-          cd product && npm ci && cd ..
+          cd auth && npm ci --include=dev && cd ..
+          cd product && npm ci --include=dev && cd ..
 
       - name: Wait for Mongo
         run: npx wait-on tcp:27017 --timeout 120000
