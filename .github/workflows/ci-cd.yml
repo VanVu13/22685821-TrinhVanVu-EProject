@@ -43,24 +43,24 @@ jobs:
           cd product && npm ci && cd ..
           npm ci
 
-      # ✅ Chờ MongoDB sẵn sàng
+      # Chờ Mongo sẵn sàng
       - name: Wait for MongoDB
-        run: npx wait-on tcp:mongo:27017
+        run: npx wait-on tcp:mongo:27017 --timeout 60000
 
-      # ✅ Start server auth và chờ server listen xong
+      # Start auth server & chờ listen xong
       - name: Start auth server
         run: |
           cd auth
           npm start &
-          npx wait-on tcp:3000
+          npx wait-on tcp:3000 --timeout 60000
 
-      # ✅ Test auth sau khi server sẵn sàng
+      # Test auth
       - name: Run tests for auth
         run: |
           cd auth
           npm test
 
-      # ✅ Test product
+      # Test product
       - name: Run tests for product
         run: |
           cd product
