@@ -50,7 +50,8 @@ jobs:
           npm start &
           sleep 5  # hoặc wait-on http://localhost:3000
           cd ..
-
+      - name: Wait for auth server
+        run: npx wait-on http://localhost:3000/login
       - name: Run tests for product (calls auth service)
         run: |
           cd product
