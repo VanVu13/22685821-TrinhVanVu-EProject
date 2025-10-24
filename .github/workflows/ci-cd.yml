@@ -10,42 +10,51 @@ permissions:
 
 jobs:
   test:
-    name: Run Unit Tests
     runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    services:
+      mongo:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+        options: "--no-healthcheck"
 
-      - name: Create .env file
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create .env
         run: |
-          echo "MONGODB_AUTH_URI=${{ secrets.MONGODB_AUTH_URI }}" >> auth/.env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> auth/.env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> product/.env
-          echo "MONGODB_PRODUCT_URI=${{ secrets.MONGODB_PRODUCT_URI }}" >> product/.env
+          echo "MONGODB_AUTH_URI=mongodb://localhost:27017/authdb" >> auth/.env
+          echo "JWT_SECRET=mysecretkey" >> auth/.env
+          echo "MONGODB_PRODUCT_URI=mongodb://localhost:27017/productdb" >> product/.env
+          echo "JWT_SECRET=mysecretkey" >> product/.env
           echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> product/.env
           echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> product/.env
 
       - name: Install dependencies
         run: |
-          cd auth
-          npm ci
-          cd ..
-          cd product
-          npm ci
-          cd ..
-          npm ci
-      - name: Run tests for auth
-        run : |
-          cd auth
-          npm test
-      - name: Run tests for product
+          cd auth && npm ci
+          cd ../product && npm ci
+
+      - name: Wait for Mongo
         run: |
-          cd auth &&
-          npm start &
-          sleep 10
-          cd product
-          npm test
+          until nc -z localhost 27017; do
+            echo "Waiting for MongoDB..."
+            sleep 2
+          done
+
+      - name: Run tests auth
+        run: |
+          cd auth && npm test
+
+      - name: Start auth and wait
+        run: |
+          cd auth && npm start &
+          until nc -z localhost 3000; do sleep 2; done
+
+      - name: Run tests product
+        run: |
+          cd product && npm test
+
 
 
   build-and-push:
