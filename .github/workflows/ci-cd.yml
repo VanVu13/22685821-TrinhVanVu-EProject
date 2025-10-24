@@ -126,21 +126,10 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Set commit SHA
+      - name: Deploy with Docker Compose
         run: |
-          echo "COMMIT_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
-
-      - name: Pull only updated images
-        run: |
-          cd "D:/DAIHOC/NAM4/TAILIEU/LTHDV/THUCHANH/22685821-TrinhVanVu-EProject1/22685821-TrinhVanVu-EProject-main"
-          docker pull trinhvanvu/auth:${env:GITHUB_SHA} -ErrorAction SilentlyContinue
-          docker pull trinhvanvu/product:${env:GITHUB_SHA} -ErrorAction SilentlyContinue
-          docker pull trinhvanvu/order:${env:GITHUB_SHA} -ErrorAction SilentlyContinue
-          docker pull trinhvanvu/api-gateway:${env:GITHUB_SHA} -ErrorAction SilentlyContinue
-
-      - name: Deploy updated services
-        run: |
-          cd "D:/DAIHOC/NAM4/TAILIEU/LTHDV/THUCHANH/22685821-TrinhVanVu-EProject1/22685821-TrinhVanVu-EProject-main"
+          cd "D:\DAIHOC\NAM4\TAILIEU\LTHDV\THUCHANH\22685821-TrinhVanVu-EProject1\22685821-TrinhVanVu-EProject-main"
           docker-compose down --remove-orphans
+          docker-compose pull
           docker-compose up -d
           docker ps
