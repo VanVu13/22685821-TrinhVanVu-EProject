@@ -18,10 +18,10 @@ jobs:
         ports:
           - 27017:27017
         options: >-
-          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'" 
-          --health-interval 10s 
-          --health-timeout 30s 
-          --health-retries 10
+          --health-cmd "mongosh --eval 'db.adminCommand({ ping: 1 })'"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - uses: actions/checkout@v4
@@ -33,41 +33,40 @@ jobs:
 
       - name: Create .env files
         run: |
-          echo "MONGODB_AUTH_URI=mongodb://mongo:27017/authdb" >> auth/.env
+          echo "MONGODB_AUTH_URI=${{ secrets.MONGODB_AUTH_URI  }}" >> auth/.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> auth/.env
-          echo "MONGODB_PRODUCT_URI=mongodb://mongo:27017/productdb" >> product/.env
+          echo "MONGODB_PRODUCT_URI=${{ secrets.MONGODB_PRODUCT_URI }}" >> product/.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> product/.env
           echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> product/.env
           echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> product/.env
 
       - name: Install dependencies
         run: |
-          cd auth && npm ci --include=dev && cd ..
-          cd product && npm ci --include=dev && cd ..
+          cd auth && npm ci
+          cd ../product && npm ci
+          cd .. && npm ci
 
       - name: Wait for Mongo
         run: npx wait-on tcp:27017 --timeout 120000
 
-      - name: Run Auth Tests
+      - name: Run auth tests
         run: |
           cd auth
-          npm ci --include=dev
-          echo "Node modules in auth:"
-          ls node_modules
-          npx mocha --timeout 20000 src/test/**/*.test.js --exit --reporter spec
-          cd ..
-
-      - name: Run Product Tests
+          npm test
+      - name: Start auth service for integration tests
         run: |
           cd auth
           npm start &
-          npx wait-on http://localhost:3000/login --timeout 30000
-          cd ../product
-          npm ci --include=dev
-          echo "Node modules in product:"
-          ls node_modules
-          npx mocha --timeout 20000 src/test/**/*.test.js --exit --reporter spec
+          echo "Waiting for auth service..."
+          npx wait-on http://localhost:3000/auth --timeout 30000
+      - name: Run Product Tests
+        run: |
+          cd product
+          npm test
           cd ..
+      - name: Cleanup
+        if: always()
+        run: pkill -f "node" || true
   build-and-push:
     name: Build and Push Docker Images
     runs-on: ubuntu-latest
