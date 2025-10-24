@@ -30,10 +30,10 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "MONGODB_AUTH_URI=mongodb://localhost:27017/auth_test" >> auth/.env
+          echo "MONGODB_AUTH_URI=${{ secrets.MONGODB_AUTH_URI }}" >> auth/.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> auth/.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> product/.env
-          echo "MONGODB_PRODUCT_URI=mongodb://localhost:27017/product_test" >> product/.env
+          echo "MONGODB_PRODUCT_URI=${{ secrets.MONGODB_PRODUCT_URI }}" >> product/.env
           echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> product/.env
           echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> product/.env
 
@@ -48,21 +48,18 @@ jobs:
           cd auth
           npm test
 
+      # ✅ Chỉ cần 1 bước Start auth server
       - name: Start auth server and wait
         run: |
           cd auth
           npm start &
           npx wait-on tcp:3000
-      # ✅ Thêm bước này ngay sau khi test auth
-      - name: Start auth server and wait
-        run: |
-          cd auth
-          npm start &
-          npx wait-on tcp:3000
+
       - name: Run tests for product
         run: |
           cd product
           npm test
+
 
   build-and-push:
     name: Build and Push Docker Images
