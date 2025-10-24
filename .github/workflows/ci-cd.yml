@@ -38,13 +38,10 @@ jobs:
         run : |
           cd auth
           npm test
-      - name: Start auth server
-        run: |
-          cd auth
-          npm start & # start server background
-          npx wait-on http://localhost:3000 # chờ server sẵn sàng
       - name: Run tests for product
         run: |
+          cd auth &&
+          npm start &
           cd product
           npm test
 
