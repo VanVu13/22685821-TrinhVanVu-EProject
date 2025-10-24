@@ -13,7 +13,6 @@ describe("Products", () => {
         app = new App();
         await Promise.all([app.connectDB(), app.setupMessageBroker()]);
 
-        // --- 🧩 1. Đảm bảo Auth service đã có tài khoản test ---
         try {
             const registerRes = await chai
                 .request("http://localhost:3000")
@@ -23,12 +22,11 @@ describe("Products", () => {
                     password: process.env.LOGIN_TEST_PASSWORD,
                 });
 
-            console.log("✅ Registered test user:", registerRes.status);
+            console.log("Registered test user:", registerRes.status);
         } catch (err) {
-            console.log("ℹ️ Possibly already registered:", err.response && err.response.status);
+            console.log("ℹPossibly already registered:", err.response && err.response.status);
         }
 
-        // --- 🧩 2. Đăng nhập để lấy token ---
         const authRes = await chai
             .request("http://localhost:3000")
             .post("/login")
@@ -37,14 +35,14 @@ describe("Products", () => {
                 password: process.env.LOGIN_TEST_PASSWORD,
             });
 
-        console.log("🔑 Auth response:", authRes.status, authRes.body);
+        console.log(" Auth response:", authRes.status, authRes.body);
 
         if (!authRes.body.token) {
-            throw new Error("❌ No token received from Auth service. Check LOGIN_TEST_USER and LOGIN_TEST_PASSWORD!");
+            throw new Error("No token received from Auth service. Check LOGIN_TEST_USER and LOGIN_TEST_PASSWORD!");
         }
 
         authToken = authRes.body.token;
-        console.log("✅ Token received:", authToken);
+        console.log("Token received:", authToken);
 
         app.start();
     });
