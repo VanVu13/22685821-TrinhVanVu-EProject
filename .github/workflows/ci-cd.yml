@@ -39,6 +39,8 @@ jobs:
       - name: Run tests for auth
         run: |
           cd auth
+          npm start &
+          sleep 5
           npm test
 
       - name: Start auth service
