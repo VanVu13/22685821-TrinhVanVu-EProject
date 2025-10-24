@@ -9,9 +9,41 @@ permissions:
   contents: read
 
 jobs:
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: |
+          echo "MONGODB_AUTH_URI=${{ secrets.MONGODB_AUTH_URI }}" >> auth/.env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> auth/.env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> product/.env
+          echo "MONGODB_PRODUCT_URI=${{ secrets.MONGODB_PRODUCT_URI }}" >> product/.env
+          echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> product/.env
+          echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> product/.env
+
+      - name: Install dependencies
+        run: |
+          cd auth && npm ci
+          cd ../product && npm ci
+
+      - name: Run tests
+        run: |
+          cd auth
+          npm test
+          nohup npm start &       # chạy nền để product test có thể gọi auth
+          sleep 5                 # đợi auth sẵn sàng
+          cd ../product
+          npm test
+
   build-and-push:
     name: Build and Push Docker Images
     runs-on: ubuntu-latest
+    needs: test
 
     steps:
       - name: Checkout code
@@ -22,53 +54,30 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      # ✅ Tạo file .env tự động cho từng service
-      - name: Create .env files for all services
+
+      - name: Create .env file
         run: |
-          echo "Creating .env forauth..."
           echo "MONGODB_AUTH_URI=${{ secrets.MONGODB_AUTH_URI }}" >> auth/.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> auth/.env
-          echo "PORT=3000" >> auth/.env
-
-          echo "Creating .env for product..."
-          echo "PORT=3001" >> product/.env
-          echo "MONGODB_PRODUCT_URI=${{ secrets.MONGODB_PRODUCT_URI }}" >> product/.env
-          echo "RABBITMQ_URI=${{ secrets.RABBITMQ_URI }}" >> product/.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> product/.env
-
-          echo "Creating .env for order..."
-          echo "MONGODB_ORDER_URI=${{ secrets.MONGODB_ORDER_URI }}" >> order/.env
           echo "MONGODB_PRODUCT_URI=${{ secrets.MONGODB_PRODUCT_URI }}" >> product/.env
-          echo "MONGODB_AUTH_URI=${{ secrets.MONGODB_AUTH_URI }}" >> auth/.env
-          echo "RABBITMQ_URI=${{ secrets.RABBITMQ_URI }}" >> order/.env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> order/.env
-          echo "PORT=3002" >> order/.env
+          echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> product/.env
+          echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> product/.env
 
-          echo "Creating .env for api-gateway..."
-          echo "PORT=4003" >> api-gateway/.env
-          echo "AUTH_SERVICE_URL=http://auth:4000" >> api-gateway/.env
-          echo "PRODUCT_SERVICE_URL=http://product:3001" >> api-gateway/.env
-          echo "ORDER_SERVICE_URL=http://order:4002" >> api-gateway/.env
-
-      # Build & push images cho tất cả service
       - name: Build & Push all service images
         run: |
-          # api-gateway
           docker build -t trinhvanvu/api-gateway:latest -t trinhvanvu/api-gateway:${{ github.sha }} ./api-gateway
           docker push trinhvanvu/api-gateway:latest
           docker push trinhvanvu/api-gateway:${{ github.sha }}
 
-          # auth
           docker build -t trinhvanvu/auth:latest -t trinhvanvu/auth:${{ github.sha }} ./auth
           docker push trinhvanvu/auth:latest
           docker push trinhvanvu/auth:${{ github.sha }}
 
-          # order
           docker build -t trinhvanvu/order:latest -t trinhvanvu/order:${{ github.sha }} ./order
           docker push trinhvanvu/order:latest
           docker push trinhvanvu/order:${{ github.sha }}
 
-          # product
           docker build -t trinhvanvu/product:latest -t trinhvanvu/product:${{ github.sha }} ./product
           docker push trinhvanvu/product:latest
           docker push trinhvanvu/product:${{ github.sha }}
@@ -82,16 +91,7 @@ jobs:
       - name: Deploy with Docker Compose
         run: |
           cd "D:\DAIHOC\NAM4\TAILIEU\LTHDV\THUCHANH\22685821-TrinhVanVu-EProject1\22685821-TrinhVanVu-EProject-main"
-
-          # ✅ 1. Dừng container cũ (không xóa image)
-          docker-compose down
-
-          # ✅ 2. Pull image mới từ Docker Hub
+          docker-compose down --remove-orphans
           docker-compose pull
-
-          # ✅ 3. Khởi động container mới bằng image mới
           docker-compose up -d
-
-          # ✅ 4. Kiểm tra xem container đang chạy bản mới chưa
           docker ps
-
