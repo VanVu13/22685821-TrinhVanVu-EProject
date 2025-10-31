@@ -1,4 +1,9 @@
-# 22685821-TrinhVanVu-EProject
+# 🧩 22685821 - Trịnh Văn Vũ | EProject: Microservices E-Commerce System
+> 🔧 **Môn học:** Lập trình hướng dịch vụ
+> 👨‍💻 **Sinh viên thực hiện:** *Trịnh Văn Vũ*  
+> 🆔 **MSSV:** 22685821  
+> 🏫 **Đề tài:** Xây dựng hệ thống thương mại điện tử sử dụng kiến trúc Microservices  
+> 🕓 **Thời gian thực hiện:** 2025
 ---
 
 ## 📌 Mô tả dự án
@@ -10,20 +15,25 @@
 - **MongoDB**: Lưu trữ dữ liệu của tất cả service.  
 - **RabbitMQ**: Hỗ trợ pub/sub giữa các service (event-driven architecture).  
 
-Mỗi service có thể sử dụng **ngôn ngữ, framework, database riêng** theo nhu cầu. Toàn bộ hệ thống được triển khai bằng **Docker** để đảm bảo tính độc lập và dễ quản lý.
+Tất cả được **đóng gói & triển khai bằng Docker**, đảm bảo dễ dàng mở rộng, triển khai và bảo trì.
 
 ---
 
 ## 🗂️ Cấu trúc thư mục
 ```
-EProject/
-├─ api-gateway/
-├─ auth/
-├─ product/
-├─ order/
-├─ docker-compose.yml
-├─ README.md
+22685821-TrinhVanVu-EProject-main/
+│
+├── api-gateway/         # Entry point for external clients
+├── auth/                # Authentication service (JWT, login/register)
+├── product/             # Product service (CRUD, message broker)
+├── order/               # Order service (consumes product/auth data)
+├── utils/               # Shared helper modules
+│
+├── docker-compose.yml   # Docker orchestration file
+├── package.json         # Root-level dependencies
+└── README.md            # Project documentation
 ```
+⚙️ Kiến trúc hệ thống
 ```
                        ┌────────────┐
                        │   Client   │
@@ -50,78 +60,73 @@ EProject/
 - Postman hoặc bất kỳ HTTP client nào để test API  
 
 ---
+## ⚙️ Services Description
 
-## 🚀 Hướng dẫn chạy project
+| Service         | Port         | Description                                  |
+| --------------- | ------------ | -------------------------------------------- |
+| **api-gateway** | 3003         | Central gateway routing requests to services |
+| **auth**        | 3000         | Handles user authentication and JWT          |
+| **product**     | 3001         | Manages product catalog and inventory        |
+| **order**       | 3002         | Handles order creation and status tracking   |
+| **mongo**       | 27017        | NoSQL database for persistence               |
+| **rabbitmq**    | 5672 / 15672 | Message broker for service communication     |
 
+## 🧠 Công nghệ sử dụng
+---
+| Thành phần           | Công nghệ               |
+| -------------------- | ----------------------- |
+| **Ngôn ngữ chính**   | Node.js (Express.js)    |
+| **Database**         | MongoDB                 |
+| **Message Broker**   | RabbitMQ                |
+| **Authentication**   | JWT                     |
+| **Containerization** | Docker & Docker Compose |
+| **Orchestration**    | Docker Compose          |
+| **Version Control**  | Git + GitHub            |
+| **CI/CD**            | GitHub Actions          |
+---
+## 🐳 Triển khai hệ thống bằng Docker
 1️⃣ Clone project
-```bash
-git clone https://github.com/VanVu13/22685821-TrinhVanVu-EProject.git
-cd 22685821-TrinhVanVu-EProject
-
-2️⃣ Cấu hình biến môi trường .env
-
-Mỗi service có file .env riêng:
-# auth/.env
-PORT=3000
-MONGODB_URI=mongodb://mongo:27017/authdb
-JWT_SECRET=mysecretkey
-
-# product/.env
-PORT=3001
-MONGODB_URI=mongodb://mongo:27017/productdb
-RABBITMQ_URI=amqp://rabbitmq:5672
-JWT_SECRET=mysecretkey
-
-# order/.env
-PORT=3002
-MONGODB_URI=mongodb://mongo:27017/orderdb
-RABBITMQ_URI=amqp://rabbitmq:5672
-JWT_SECRET=mysecretkey
-
-3️⃣ Chạy toàn bộ hệ thống bằng Docker
-docker-compose up --build
-- Mỗi service, MongoDB và RabbitMQ chạy trên container riêng.
-- API Gateway chạy trên http://localhost:3003, định tuyến đến các service.
-
-
-4️⃣Hướng dẫn test API
-1.Đăng ký tài khoản
-    POST http://localhost:3000/register
-    Body (JSON):
-    {
-      "username": "admin",
-      "password": "123456"
-    }
-2.Đăng nhập để lấy Token
-  POST http://localhost:3000/login
-  Body:
-  {
-    "username": "admin",
-    "password": "123456"
-  }
-  👉 Lưu token trả về để sử dụng ở các request sau (Authorization → Bearer Token)
-3.Thêm sản phẩm
-  POST http://localhost:3001/products
-  Headers:
-  Authorization: Bearer <token>
-  Body:
-  {
-    "name": "Laptop Dell XPS 13",
-    "price": 32000000,
-    "description": ok
-  }
-
-4.Xem danh sách sản phẩm
-  GET http://localhost:3001/products
-5. Mua sản phẩm
-  POST http://localhost:3003/orders
-  Headers:
-  Authorization: Bearer <token>
-  Body:
-  {
-    "ids": "ID của sản phẩm",
-  }
-  
-
+- git clone https://github.com/VanVu13/22685821-TrinhVanVu-EProject.git
+- cd 22685821-TrinhVanVu-EProject-main
+2️⃣ Cấu hình môi trường .env
+📁 auth/.env
+-PORT=
+-MONGO_URI=
+-JWT_SECRET=
+📁 product/.env
+-PORT=
+-MONGO_URI=
+-RABBITMQ_URI=amqp://rabbitmq:5672
+-JWT_SECRET=
+📁 order/.env
+-PORT=
+-MONGO_URI=
+-RABBITMQ_URI=amqp://rabbitmq:5672
+-JWT_SECRET=
+3️⃣ Chạy toàn bộ hệ thống
+-docker-compose up --build
+## 📬 Hướng dẫn test API
+-🔹 1. Đăng ký tài khoản
+- POST http://localhost:3003/register
+>{
+  "username": "admin",
+  "password": "123456"
+>}
+- 🔹 2. Đăng nhập để lấy token
+- POST http://localhost:3003/login
+>{
+  "username": "admin",
+  "password": "123456"
+>}
+- 🔹 3. Thêm sản phẩm
+- POST http://localhost:3001/products
+> Authorization: Bearer <token>
+> {
+  "name": "Laptop Dell XPS 13",
+  "price": 32000000,
+  "description": "UltraBook cao cấp"
+> }
+## 🔁 CI/CD với GitHub Actions
+>File: .github/workflows/ci-cd.yml
 
 
