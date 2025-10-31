@@ -2,8 +2,6 @@ version: "3.9"
 
 services:
   api-gateway:
-    build:
-      context: ./api-gateway
     container_name: api-gateway
     ports:
       - "3003:3003"
@@ -14,22 +12,22 @@ services:
       - auth
       - product
       - order
-    
+    image: trinhvanvu/api-gateway:latest
+    build:
+      context: ./api-gateway
 
   auth:
-    build:
-      context: ./auth
     container_name: auth
     ports:
       - "3000:3000"
     env_file: ./auth/.env
     depends_on:
       - mongo
-    
+    image: trinhvanvu/auth:latest
+    build:
+      context: ./auth
 
   product:
-    build:
-      context: ./product
     container_name: product
     ports:
       - "3001:3001"
@@ -37,11 +35,11 @@ services:
     depends_on:
       - mongo
       - rabbitmq
- 
+    image: trinhvanvu/product:latest
+    build:
+      context: ./product
 
   order:
-    build:
-      context: ./order
     container_name: order
     ports:
       - "3002:3002"
@@ -49,7 +47,9 @@ services:
     depends_on:
       - mongo
       - rabbitmq
-    
+    image: trinhvanvu/order:latest
+    build:
+      context: ./order
 
   mongo:
     image: mongo:latest
@@ -62,7 +62,7 @@ services:
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
-    ports:  
+    ports:
       - "5672:5672"
       - "15672:15672"
 
