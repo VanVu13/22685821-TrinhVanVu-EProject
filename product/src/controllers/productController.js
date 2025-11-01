@@ -9,7 +9,7 @@ class ProductController {
 
   constructor() {
     this.createOrder = this.createOrder.bind(this);
-    this.getProductById= this.productById.bind(this);
+    this.getProductById= this.getProductById.bind(this);
     this.ordersMap = new Map();
 
   }
