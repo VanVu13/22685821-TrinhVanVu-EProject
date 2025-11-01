@@ -15,6 +15,7 @@ services:
     image: trinhvanvu/api-gateway:latest
     build:
       context: ./api-gateway
+      dockerfile: Dockerfile
 
   auth:
     container_name: auth
@@ -26,6 +27,8 @@ services:
     image: trinhvanvu/auth:latest
     build:
       context: ./auth
+      dockerfile: Dockerfile
+
 
   product:
     container_name: product
@@ -38,6 +41,8 @@ services:
     image: trinhvanvu/product:latest
     build:
       context: ./product
+      dockerfile: Dockerfile
+
 
   order:
     container_name: order
@@ -50,6 +55,8 @@ services:
     image: trinhvanvu/order:latest
     build:
       context: ./order
+      dockerfile: Dockerfile
+
 
   mongo:
     image: mongo:latest
